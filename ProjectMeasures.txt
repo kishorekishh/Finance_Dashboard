@@ -1,0 +1,48 @@
+Measures:
+
+Total_Value = SUM('Dataset'[Value])
+
+Income=CALCULATE([Total_Value],'Dataset'[Type]="Income")
+
+Savings=CALCULATE([Total_Value],'Dataset'[Type]="Savings")
+
+Expenses = CALCULATE([Total_Value],'Dataset'[Type]="Expense")
+
+Savings%=DIVIDE([Savings],[Income])
+
+Income LM=CALCULATE([Income],DATEADD('Dataset'[Date],-1,MONTH))
+
+Income Change MoM%=DIVIDE([Income],[Income LM])
+
+Expense%=DIVIDE([Expenses],[Income])
+
+Target = CALCULATE(SUM('Dataset'[Value]),'Dataset'[Type]="Target")
+
+Line_Chart_Measures = var Selected_Val=SELECTEDVALUE(Line_Selection_Table[No])
+
+RETURN SWITCH(Selected_Val,1,[Expense%],2,[Income Change MoM%],3,[Savings%],4,[Target])
+RETURN Selected_Val
+
+Dynamic_Title=SELECTEDVALUE(Line_Selection_Table[Type])&" by Date "
+
+Monthly_Sale = VAR CY_Selected_Month=SELECTEDVALUE(Selected_Date[Month-Yr])
+
+RETURN
+CALCULATE([Total_Value],'Dataset'[Month-Yr]=CY_Selected_Month)
+
+PY_Month_Sale = PREVIOUSMONTH(Selected_Date[Date])
+
+Calculated Columns:
+
+Year=FORMAT('Dataset'[Date],"yyyy")
+
+Month-Yr = FORMAT('Dataset'[Date],"mmm-yy")
+
+New Table: Table Name: Line_Selection_Table
+Line_Selection_Table = DATATABLE("Type",STRING,"No",INTEGER,
+{
+    {"Income",1},{"Savings",2},{"Expenses",3},{"Target",4}   
+})
+
+New Table: Table Name: Selection_Table
+Selected_Date=SUMMARIZE('Dataset','Dataset'[Date],'Dataset'[Month-Yr],'Dataset'[Year])

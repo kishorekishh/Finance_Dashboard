@@ -1,0 +1,134 @@
+Power BI Finance Dashboard Project Overview
+
+Built a simple, basic dynamic and interactive finance dashboard using advanced DAX functions, calculated measures, and custom tables to analyze income, savings, expenses, and trends over time.
+
+DAX Functions Used 
+1.SUM
+SUM(column)
+→ Returns the total sum of values in a column.
+
+2.CALCULATE
+CALCULATE(expression, filter1, filter2,...)
+→ Modifies the filter context to evaluate an expression.
+
+3.DIVIDE
+DIVIDE(numerator, denominator, [alternativeResult])
+→ Safely divides two values and avoids divide-by-zero errors.
+
+4.DATEADD
+DATEADD(dates, number_of_intervals, interval)
+→ Shifts dates by a specified interval (like previous month).
+
+5.SELECTEDVALUE
+SELECTEDVALUE(column)
+→ Returns the selected value if only one value is selected.
+
+6.SWITCH
+SWITCH(expression, value1, result1, value2, result2, ...)
+→ Evaluates expressions and returns a matching result.
+
+7.PREVIOUSMONTH
+PREVIOUSMONTH(dates)
+→ Returns the previous month's date from a column.
+
+8.FORMAT
+FORMAT(value, format_string)
+→ Converts values into specific string formats like "mmm-yy".
+
+9.VAR
+VAR variable = expression
+→ Defines temporary variables inside DAX measures.
+
+10.RETURN
+RETURN expression
+→ Returns the final value of a DAX formula using VAR.
+
+11.DATATABLE
+DATATABLE(columnName1, dataType1, ..., {row1, row2, ...})
+→ Creates a custom static table in memory.
+
+12.SUMMARIZE
+SUMMARIZE(table, groupBy_column1, ..., [name, expression])
+→ Returns a summary table based on grouped values.
+
+DAX Measures Used in the Dashboard:
+1.Total_Value
+= SUM('Dataset'[Value])
+→ Calculates the total transaction value across all types.
+
+2.Income
+= CALCULATE([Total_Value], 'Dataset'[Type]="Income")
+→ Filters and returns total income.
+
+3.Savings
+= CALCULATE([Total_Value], 'Dataset'[Type]="Savings")
+→ Filters and returns total savings.
+
+4.Expenses
+= CALCULATE([Total_Value], 'Dataset'[Type]="Expense")
+→ Filters and returns total expenses.
+
+5.Savings%
+= DIVIDE([Savings], [Income])
+→ Calculates savings as a percentage of income.
+
+6.Income LM (Last Month)
+= CALCULATE([Income], DATEADD('Dataset'[Date], -1, MONTH))
+→ Computes last month's income.
+
+7.Income Change MoM%
+= DIVIDE([Income], [Income LM])
+→ Month-over-month income change in percentage.
+
+8.Expense%
+= DIVIDE([Expenses], [Income])
+→ Expenses as a percentage of income.
+
+9.Target
+= CALCULATE(SUM('Dataset'[Value]), 'Dataset'[Type]="Target")
+→ Returns target value for financial goal tracking.
+
+10. Line_Chart_Measures
+VAR Selected_Val = SELECTEDVALUE(Line_Selection_Table[No])
+RETURN SWITCH(Selected_Val, 1, [Expense%], 2, [Income Change MoM%], 3, [Savings%], 4, [Target])
+→ Dynamically displays chart measure based on user selection.
+
+11. Dynamic_Title
+= SELECTEDVALUE(Line_Selection_Table[Type]) & " by Date "
+→ Changes chart title dynamically based on selection.
+
+12. Monthly_Sale
+=VAR CY_Selected_Month = SELECTEDVALUE(Selected_Date[Month-Yr])
+RETURN CALCULATE([Total_Value], 'Dataset'[Month-Yr] = CY_Selected_Month)
+→ Filters data to show values for selected month.
+
+13.PY_Month_Sale
+= PREVIOUSMONTH(Selected_Date[Date])
+→ Gets the previous month’s sales period.
+
+📅 Calculated Columns Used
+(ℹ️ A calculated column is a new column created using a DAX formula that evaluates row by row in a table.)
+
+Year
+= FORMAT('Dataset'[Date], "yyyy")
+→ Extracts year from the date.
+
+Month-Yr
+= FORMAT('Dataset'[Date], "mmm-yy")
+→ Converts date into month-year format for grouping.
+
+📁 Tables Created for Dynamic Selections:
+Line_Selection_Table (Used for line chart selection)
+
+DAX
+Copy
+Edit
+DATATABLE("Type", STRING, "No", INTEGER, {
+   {"Income", 1}, {"Savings", 2}, {"Expenses", 3}, {"Target", 4}
+})
+Selected_Date (Used for time-based filtering)
+
+DAX
+Copy
+Edit
+SUMMARIZE('Dataset', 'Dataset'[Date], 'Dataset'[Month-Yr], 'Dataset'[Year])
